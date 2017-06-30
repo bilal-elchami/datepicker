@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<style type="text/css">
+	
+	.datepicker {
+		font-family: Verdana, sans-serif;
+		position: absolute;
+		z-index: 1;
+		display: block;
+	}
+
+	.datepicker .navigation{
+		vertical-align: middle;
+		top: 2px;
+		cursor: pointer;
+	}
+
+	.datepicker * {
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+
+	.datepicker-title {
+		text-align: center;
+		padding: 2px;
+		/*text-transform: uppercase;*/
+	}
+
+	.datepicker-previous{
+		float: left;
+	}
+
+	.datepicker-next {
+		float: right;
+	}
+
+	.datepicker table {
+		width: 100%;
+		font-size: .9em;
+		border-collapse: collapse;
+		margin: 0 0 .4em;
+		background: #eee;
+	}
+
+	.datepicker table thead{
+		background-color: #ddd;
+		color: #666;
+	}
+
+	.datepicker th {
+		font-weight: normal;
+	}
+
+
+	a.day {
+		/*border: 1px solid #c5c5c5;*/
+		/*background: #f6f6f6;*/
+		/*font-weight: normal;*/
+		color: #777;
+		border: 1px solid transparent;
+		transition: 0.3s;
+		cursor: pointer;
+	}
+
+	a.day:hover {
+		background: #f6f6f6;
+		transition: 0.3s;
+	}
+
+	a.day.today {
+		background: #1abc9c;
+		opacity: 0.6;
+		color: #FFF;
+		transition: opacity 0.3s;
+		-webkit-transition: opacity 0.3s;
+	}
+
+	a.day.today:hover {
+		opacity: 1;
+		transition: opacity 0.3s;
+		-webkit-transition: opacity 0.3s;
+	}
+
+	a.day.selected {
+		background: #1abc9c;
+		color: #FFF;
+		border: 1px solid #595959;
+		opacity: 1;
+	}
+
+	.datepicker td span, .datepicker td a {
+		display: block;
+		padding: 0.2em 0.5em;
+		text-align: center;
+		text-decoration: none;
+	}
+
+	.datepicker .datepicker-month-header {
+		background: #1abc9c;
+		color: #FFF;
+		padding: 5px 10px;
+	}
+
+</style>
+	<div id="datepicker-div" class="datepicker">
+		<div class="datepicker-month-header">
+			<a class="datepicker-previous" onclick="previousMonth()">
+				<span class="navigation">&#10094;</span>
+			</a>
+			<a class="datepicker-next" onclick="nextMonth()">
+				<span class="navigation">&#10095;</span>
+			</a>
+			<div class="datepicker-title">
+				<span id="datepicker-month">May</span>&nbsp;<span id="datepicker-year">2017</span>
+			</div>
+		</div>
+		<table class="ui-datepicker-calendar">
+			<thead>
+				<tr>
+					<th><span title="Monday">Mo</span></th>
+					<th><span title="Tuesday">Tu</span></th>
+					<th><span title="Wednesday">We</span></th>
+					<th><span title="Thursday">Th</span></th>
+					<th><span title="Friday">Fr</span></th>
+					<th><span title="Saturday">Sa</span></th>
+					<th><span title="Sunday">Su</span></th>
+				</tr>
+			</thead>
+			<tbody id="datepicker-tbody">
+			</tbody>
+		</table>
+	</div>
+	<script type="text/javascript">
+
+		function Datepicker(){
+			
+		}
+
+		Date.prototype.getMonthText = function() {
+			var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+			return months[this.getMonth()];
+		}
+
+		Date.prototype.isToday = function() {
+			var today = new Date();
+			if((this.getMonth() === today.getMonth()) && (this.getDate() === today.getDate()) && (this.getFullYear() === today.getFullYear())) {
+				return true;
+			}
+			return false;
+		}
+
+		var selectedDate = new Date();
+		var selectedDayLink = null;
+
+		function showDatePicker(event) {
+
+			// var selectedDate = new Date();
+			var selectedMonth = selectedDate.getMonth();
+			var selectedYear = selectedDate.getFullYear();
+			var daysInMonth = getDaysInMonth(selectedMonth, selectedYear);
+
+			document.getElementById('datepicker-month').innerHTML = selectedDate.getMonthText();
+			document.getElementById('datepicker-year').innerHTML = selectedDate.getFullYear();
+
+
+			var datepickerTableBody = document.getElementById('datepicker-tbody');
+
+			datepickerTableBody.innerHTML = '';
+
+			var tableRow = document.createElement('tr');
+			if(daysInMonth[0].getDay()===0){
+				for (var i = 1; i < 7; i++) {
+					var tableCell = document.createElement('td');
+					tableCell.innerHTML='&nbsp;';
+					tableRow.appendChild(tableCell);
+				}
+			}else{
+				for (var i = 1; i < daysInMonth[0].getDay(); i++) {
+					var tableCell = document.createElement('td');
+					tableCell.innerHTML='&nbsp;';
+					tableRow.appendChild(tableCell);
+				}
+			}
+			
+			datepickerTableBody.appendChild(tableRow);
+
+			var i = 0;
+			var newTableRow = false;
+			while( i < daysInMonth.length){
+				if(daysInMonth[i].getDay() % 7 === 1){
+					tableRow = document.createElement('tr');
+					newTableRow = true;
+				}
+				var tableCell = document.createElement('td');
+				var dayLink = document.createElement('a');
+				dayLink.innerHTML= daysInMonth[i].getDate();
+				dayLink.className = 'day';
+				if(daysInMonth[i].isToday()){
+					dayLink.className = 'day today';
+				}
+				// dayLink.href = '#';
+				dayLink.value = daysInMonth[i];
+				dayLink.onclick = onDayClick;
+				tableCell.appendChild(dayLink);
+				tableRow.appendChild(tableCell);
+				if(newTableRow){
+					datepickerTableBody.appendChild(tableRow);
+				}
+				i++;
+			}
+		}
+
+		function getDaysInMonth(month, year) {
+			var date = new Date(year, month, 1);
+			var days = [];
+			while (date.getMonth() === month) {
+				days.push(new Date(date));
+				date.setDate(date.getDate() + 1);
+			}
+			return days;
+		}
+
+		function onDayClick(event){
+			selectedDate = event.target.value;
+			if(selectedDayLink!==null){
+				removeClass(selectedDayLink, 'selected');
+			}
+			addClass(event.target, 'selected');
+			selectedDayLink = event.target;
+			console.log(selectedDate);
+		}
+
+		showDatePicker();
+
+		function previousMonth(){
+			selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth()-1, 1);
+			showDatePicker();
+		}
+
+		function nextMonth(){
+			selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth()+1, 1);
+			showDatePicker();
+		}
+
+		function addClass(element, name){
+			var i, arr1, arr2;
+			arr1 = element.className.split(" ");
+			arr2 = name.split(" ");
+			for (i = 0; i < arr2.length; i++) {
+				if (arr1.indexOf(arr2[i]) == -1) {element.className += " " + arr2[i];}
+			}
+		}
+
+		function removeClass(element, name) {
+			var i, arr1, arr2;
+			arr1 = element.className.split(" ");
+			arr2 = name.split(" ");
+			for (i = 0; i < arr2.length; i++) {
+				while (arr1.indexOf(arr2[i]) > -1) {
+					arr1.splice(arr1.indexOf(arr2[i]), 1);     
+				}
+			}
+			element.className = arr1.join(" ");
+		}
+
+	</script>
+</body>
+</html>
